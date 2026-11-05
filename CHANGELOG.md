@@ -8,4 +8,5 @@
 - Safety: battery temperature limit with early warning, macOS thermal state, low battery, stop when unplugged
 - Helper fail-safes: restores sleep on app disconnect, missed heartbeat, 55 °C, critical thermal state, and after a reboot mid-session
 - Re-applies on power-source changes
+- Locks the screen when the lid closes during a session (skipped in clamshell mode with an external display)
 - Welcome window, Settings window (opens when Ajar is reopened), diagnostics export

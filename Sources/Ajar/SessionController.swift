@@ -31,6 +31,7 @@ final class SessionController: ObservableObject {
     @Published var temperatureLimitEnabled: Bool { didSet { defaults.set(temperatureLimitEnabled, forKey: Keys.temperatureLimitEnabled) } }
     @Published var temperatureLimit: Int { didSet { defaults.set(temperatureLimit, forKey: Keys.temperatureLimit) } }
     @Published var temperatureWarning: Bool { didSet { defaults.set(temperatureWarning, forKey: Keys.temperatureWarning) } }
+    @Published var lockOnLidClose: Bool { didSet { defaults.set(lockOnLidClose, forKey: Keys.lockOnLidClose) } }
 
     static let temperatureLimits = [40, 45, 50]
     static let warningMargin = 5
@@ -43,6 +44,7 @@ final class SessionController: ObservableObject {
         static let temperatureLimitEnabled = "temperatureLimitEnabled"
         static let temperatureLimit = "temperatureLimit"
         static let temperatureWarning = "temperatureWarning"
+        static let lockOnLidClose = "lockOnLidClose"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
     }
 
@@ -50,6 +52,8 @@ final class SessionController: ObservableObject {
     private let helper = HelperClient()
     private var tickTimer: Timer?
     private var warnedAboutHeat = false
+    private var lidTimer: Timer?
+    private var lidWasClosed = false
 
     private init() {
         defaults.register(defaults: [
@@ -60,6 +64,7 @@ final class SessionController: ObservableObject {
             Keys.temperatureLimitEnabled: true,
             Keys.temperatureLimit: 45,
             Keys.temperatureWarning: true,
+            Keys.lockOnLidClose: true,
         ])
         stopBelowBattery = defaults.bool(forKey: Keys.stopBelowBattery)
         batteryThreshold = defaults.integer(forKey: Keys.batteryThreshold)
@@ -68,6 +73,7 @@ final class SessionController: ObservableObject {
         temperatureLimitEnabled = defaults.bool(forKey: Keys.temperatureLimitEnabled)
         temperatureLimit = defaults.integer(forKey: Keys.temperatureLimit)
         temperatureWarning = defaults.bool(forKey: Keys.temperatureWarning)
+        lockOnLidClose = defaults.bool(forKey: Keys.lockOnLidClose)
     }
 
     var hasCompletedOnboarding: Bool {
@@ -129,11 +135,14 @@ final class SessionController: ObservableObject {
             endsAt = duration.map { Date().addingTimeInterval($0) }
             lastStopReason = nil
             systemSleepDisabled = true
+            startWatchingLid()
         }
     }
 
     func stop(reason: String, notify: Bool = false) {
         isActive = false
+        lidTimer?.invalidate()
+        lidTimer = nil
         endsAt = nil
         lastStopReason = reason
         helper.setSleepDisabled(false) { [weak self] error in
@@ -141,6 +150,30 @@ final class SessionController: ObservableObject {
             self?.refresh()
         }
         if notify { postNotification(title: "Ajar stopped", body: "\(reason). Your Mac will sleep normally again.") }
+    }
+
+    // MARK: Lid lock
+
+    /// Normally closing the lid sleeps the Mac, which locks it. Ajar keeps it awake, so it
+    /// locks the screen itself on close: everything keeps running behind the lock screen.
+    private func startWatchingLid() {
+        lidWasClosed = LidMonitor.isClosed
+        lidTimer?.invalidate()
+        lidTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.checkLid() }
+        }
+    }
+
+    private func checkLid() {
+        let closed = LidMonitor.isClosed
+        defer { lidWasClosed = closed }
+        guard closed, !lidWasClosed, lockOnLidClose else { return }
+        // Give macOS a moment to switch displays, then skip locking in clamshell mode
+        // (lid closed with an external display in use).
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self, isActive, LidMonitor.isClosed, !LidMonitor.hasActiveDisplay else { return }
+            ScreenLocker.lockNow()
+        }
     }
 
     private func tick() {

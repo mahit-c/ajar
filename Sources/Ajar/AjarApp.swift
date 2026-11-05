@@ -76,6 +76,8 @@ struct MenuContent: View {
             Picker("Low Battery Level", selection: $session.batteryThreshold) {
                 ForEach([10, 20, 30, 50], id: \.self) { Text("\($0)%").tag($0) }
             }
+            Toggle("Lock Screen When Lid Closes", isOn: $session.lockOnLidClose)
+            Divider()
             Toggle("Stop When Unplugged", isOn: $session.stopWhenUnplugged)
             Toggle("Stop When Mac Runs Hot", isOn: $session.thermalProtection)
             Divider()

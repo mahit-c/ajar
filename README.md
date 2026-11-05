@@ -30,6 +30,7 @@ Ajar gives you that same switch, plus the safety rails it lacks:
 - **One click, lid closed.** Start for 15 minutes to 8 hours, or indefinitely, from the menu bar.
 - **Can't get stuck on.** Sleep is restored automatically when you quit, if Ajar crashes or hangs, or after a reboot mid-session.
 - **Won't cook your Mac in a bag.** Ajar stops at a battery temperature you choose (default 45 °C) and warns you 5 °C before it gets there. It also stops when macOS reports the Mac running hot.
+- **Still locks when you close the lid.** Normally closing the lid sleeps and locks your Mac. Ajar keeps the lock (everything keeps running behind it), so a closed laptop can't be opened by someone else. It's skipped when you use an external display.
 - **Battery aware.** Stops below a battery level (default 20%), and optionally when you unplug.
 - **Survives power changes.** It re-applies itself when you plug in or unplug, a common failure point for other closed-lid tools on Apple Silicon.
 - **Tells you the truth.** The menu shows the real system state, not what the app assumes, and fixes itself if the state drifts.
@@ -78,7 +79,7 @@ Click the menu bar icon (it shows a moon while off and a sun while on):
 <details id="is-it-safe">
 <summary><strong>Is it safe? Why does it need my password?</strong></summary>
 
-macOS only allows a process running as root to keep a closed laptop awake. Ajar installs a small helper that exposes exactly two actions over XPC: *disable sleep* and *restore sleep*. It never runs anything else. It only accepts connections from the Ajar app, and it restores normal sleep whenever the app quits, disconnects, stops sending a heartbeat for 60 seconds, the battery reaches 55 °C, or macOS reports a critical thermal state. The helper is about 200 lines: [`Sources/AjarHelper/main.swift`](Sources/AjarHelper/main.swift).
+macOS only allows a process running as root to keep a closed laptop awake. Ajar installs a small helper that exposes exactly two actions over XPC: *disable sleep* and *restore sleep*. It never runs anything else. It only accepts connections from the Ajar app, and it restores normal sleep whenever the app quits, disconnects, stops sending a heartbeat for 60 seconds, the battery reaches 55 °C or drops to 5%, or macOS reports a critical thermal state. Those backstops apply even if you turn the app's own limits off. Every system call it makes is time-limited, so a stuck command can't stop it restoring sleep. The helper is about 200 lines: [`Sources/AjarHelper/main.swift`](Sources/AjarHelper/main.swift).
 </details>
 
 <details>
@@ -123,6 +124,12 @@ Building from source works on both architectures. Universal release builds are o
 
 Open **Settings → Helper → Uninstall…**, then delete Ajar.app. If something went wrong, run [`scripts/uninstall.sh`](scripts/uninstall.sh). It removes the helper and runs `pmset -a disablesleep 0`.
 </details>
+
+## Known limitations
+
+- **Beta.** Tested on macOS 26 on Apple Silicon so far. Reports from other macOS versions and Macs are very welcome.
+- **One user at a time.** With fast user switching, one user stopping Ajar can end another user's session.
+- **Screen lock uses a private macOS call** (the one behind ⌃⌘Q), because there's no public API. If a future macOS removes it, Ajar falls back to turning the display off, which locks according to your *Require password* setting.
 
 ## How it works
 

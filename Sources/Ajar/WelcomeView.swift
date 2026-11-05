@@ -29,7 +29,7 @@ struct WelcomeView: View {
                     Text("Can't see it? Open Ajar again from Finder or Spotlight to get to Settings.")
                 }
                 step(number: 3, title: "Stay safe", done: false) {
-                    Text("By default Ajar stops when the battery passes \(session.temperatureLimit)°C, drops below \(session.batteryThreshold)%, or macOS reports the Mac running hot. You can change this in Settings.")
+                    Text("By default Ajar stops when the battery passes \(session.temperatureLimit)°C, drops below \(session.batteryThreshold)%, or macOS reports the Mac running hot. It also locks your screen when you close the lid, just like normal. Your work keeps running. You can change all of this in Settings.")
                 }
             }
             .padding(16)

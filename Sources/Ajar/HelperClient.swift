@@ -32,10 +32,15 @@ final class HelperClient {
     }
 
     /// Used while the app is quitting, when the main queue can no longer service replies.
-    func disableSynchronously() {
+    /// Bounded so a stuck helper can't hang quit; the helper also restores sleep on its own
+    /// once this process disconnects.
+    func disableSynchronously(timeout: TimeInterval = 2) {
         guard let connection else { return }
-        let proxy = connection.synchronousRemoteObjectProxyWithErrorHandler { _ in } as? AjarHelperProtocol
-        proxy?.setSleepDisabled(false) { _, _ in }
+        let replied = DispatchSemaphore(value: 0)
+        let proxy = connection.remoteObjectProxyWithErrorHandler { _ in replied.signal() }
+        guard let helper = proxy as? AjarHelperProtocol else { return }
+        helper.setSleepDisabled(false) { _, _ in replied.signal() }
+        _ = replied.wait(timeout: .now() + timeout)
     }
 
     private func currentConnection() -> NSXPCConnection {

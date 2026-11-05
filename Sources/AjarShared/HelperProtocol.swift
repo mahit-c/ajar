@@ -3,11 +3,14 @@ import Foundation
 public enum AjarConstants {
     public static let appBundleID = "io.github.mahit-c.ajar"
     public static let helperLabel = "io.github.mahit-c.ajar.helper"
-    public static let helperVersion = "0.2.0"
+    public static let helperVersion = "0.3.0"
 
     /// Backstop enforced by the helper even if the app hangs; the user's own limit
     /// (enforced by the app) is lower.
     public static let hardTemperatureLimit: Double = 55
+    /// Below this charge (on battery) the helper ends the session so the Mac can sleep
+    /// instead of draining to a hard shutdown, even if the user disabled the app's limit.
+    public static let hardBatteryFloor = 5
 
     /// Set to your Apple Developer Team ID for release builds. The helper then only
     /// accepts connections from an Ajar build signed by that team. While nil (local,

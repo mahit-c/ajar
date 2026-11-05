@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import IOKit.ps
 import AjarShared
@@ -11,17 +12,35 @@ func log(_ message: String) {
 }
 
 enum PMSet {
+    /// Every call is bounded: a hung pmset must never wedge the session queue, because the
+    /// watchdog that restores sleep runs on that same queue.
     @discardableResult
-    static func run(_ args: [String]) -> (status: Int32, output: String) {
+    static func run(_ args: [String], timeout: TimeInterval = 10) -> (status: Int32, output: String) {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/pmset")
         process.arguments = args
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
+        let exited = DispatchSemaphore(value: 0)
+        process.terminationHandler = { _ in exited.signal() }
         do { try process.run() } catch { return (-1, error.localizedDescription) }
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
+
+        var data = Data()
+        let reader = DispatchGroup()
+        reader.enter()
+        DispatchQueue.global().async {
+            data = pipe.fileHandleForReading.readDataToEndOfFile()
+            reader.leave()
+        }
+
+        if exited.wait(timeout: .now() + timeout) == .timedOut {
+            process.terminate()
+            if exited.wait(timeout: .now() + 2) == .timedOut { kill(process.processIdentifier, SIGKILL) }
+            log("pmset \(args.joined(separator: " ")) timed out after \(Int(timeout))s")
+            return (-1, "pmset timed out")
+        }
+        _ = reader.wait(timeout: .now() + 2)
         return (process.terminationStatus, String(decoding: data, as: UTF8.self))
     }
 
@@ -32,13 +51,22 @@ enum PMSet {
         return false
     }
 
-    /// Returns nil on success, otherwise an error message.
+    /// Returns nil on success, otherwise an error message. Retries once, since restoring
+    /// sleep is the one operation that must not silently fail.
     static func setSleepDisabled(_ disabled: Bool) -> String? {
-        let result = run(["-a", "disablesleep", disabled ? "1" : "0"])
-        if result.status != 0 {
-            return result.output.isEmpty ? "pmset exited with status \(result.status)" : result.output
+        var error: String?
+        for attempt in 1...2 {
+            let result = run(["-a", "disablesleep", disabled ? "1" : "0"])
+            if result.status != 0 {
+                error = result.output.isEmpty ? "pmset exited with status \(result.status)" : result.output
+            } else if sleepDisabled != disabled {
+                error = "pmset ran but SleepDisabled did not change"
+            } else {
+                return nil
+            }
+            if attempt == 1 { log("setSleepDisabled(\(disabled)) failed, retrying: \(error ?? "")") }
         }
-        return sleepDisabled == disabled ? nil : "pmset ran but SleepDisabled did not change"
+        return error
     }
 }
 
@@ -96,13 +124,17 @@ final class Session {
         }
     }
 
-    func checkThermal() {
+    /// Backstops that apply whatever the user's settings in the app are.
+    func checkSafety() {
         queue.sync {
             guard owner != nil else { return }
+            let charge = BatterySensor.charge()
             if ProcessInfo.processInfo.thermalState == .critical {
                 _ = endLocked("critical thermal state")
             } else if let celsius = BatterySensor.temperatureCelsius(), celsius >= AjarConstants.hardTemperatureLimit {
                 _ = endLocked("battery at \(Int(celsius))°C")
+            } else if !charge.onACPower, let percent = charge.percent, percent <= AjarConstants.hardBatteryFloor {
+                _ = endLocked("battery at \(percent)%")
             }
         }
     }
@@ -173,7 +205,7 @@ listener.resume()
 
 let watchdog = Timer(timeInterval: 10, repeats: true) { _ in
     Session.shared.checkWatchdog()
-    Session.shared.checkThermal()
+    Session.shared.checkSafety()
 }
 RunLoop.main.add(watchdog, forMode: .default)
 
@@ -184,6 +216,6 @@ if let source = IOPSNotificationCreateRunLoopSource(powerCallback, nil)?.takeRet
 
 let thermalObserver = NotificationCenter.default.addObserver(
     forName: ProcessInfo.thermalStateDidChangeNotification, object: nil, queue: nil
-) { _ in Session.shared.checkThermal() }
+) { _ in Session.shared.checkSafety() }
 
 RunLoop.main.run()

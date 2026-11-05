@@ -95,6 +95,12 @@ private struct SafetyTab: View {
                     .disabled(!session.temperatureLimitEnabled)
                 Toggle("Stop when macOS reports the Mac running hot", isOn: $session.thermalProtection)
             }
+            Section("Privacy") {
+                Toggle("Lock the screen when the lid closes", isOn: $session.lockOnLidClose)
+                Text("Without Ajar, closing the lid sleeps and locks your Mac. This keeps the lock: everything keeps running behind the lock screen. Skipped when an external display is in use.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
             Section("Power") {
                 Toggle("Stop at low battery", isOn: $session.stopBelowBattery)
                 Picker("Low battery level", selection: $session.batteryThreshold) {

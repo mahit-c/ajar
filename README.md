@@ -96,7 +96,20 @@ The helper notices that the app has disconnected and restores normal sleep strai
 <details>
 <summary><strong>How is this different from Caffeine, Amphetamine or KeepingYouAwake?</strong></summary>
 
-Caffeine and KeepingYouAwake prevent idle sleep but don't keep a MacBook awake with the lid closed. Amphetamine can, but it needs separate add-ons and scripts, and users have reported sessions failing on power changes and Macs left unable to sleep afterwards. Ajar does one thing, closed-lid awake, and focuses on doing it reliably and safely.
+Caffeine and KeepingYouAwake prevent idle sleep but don't keep a MacBook awake with the lid closed. Amphetamine can, and it has far more features (triggers, hotkeys, AppleScript), so if you need those it's a great choice. Ajar focuses on doing closed-lid mode reliably and safely:
+
+| | Ajar | Amphetamine | Caffeine / KeepingYouAwake |
+|---|:-:|:-:|:-:|
+| Awake with the lid closed | ✅ | ✅ (add-on scripts on Apple Silicon) | ❌ |
+| Stops at a battery temperature you choose | ✅ | ❌ | ❌ |
+| Warns before it gets too hot | ✅ | ❌ | ❌ |
+| Stops when macOS reports the Mac running hot | ✅ | ❌ | ❌ |
+| Stops at low battery | ✅ | ✅ | ❌ |
+| Restores sleep after a crash or reboot | ✅ | With the separate Enhancer | n/a |
+| One install, no extra scripts | ✅ | ❌ | ✅ |
+| Open source | ✅ | ❌ | ✅ |
+| Triggers (Wi-Fi, displays, apps, schedule…) | ❌ | ✅ | ❌ |
+| Hotkeys, AppleScript | Not yet | ✅ | Partial |
 </details>
 
 <details>

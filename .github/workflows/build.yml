@@ -1,0 +1,20 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build app bundle
+        run: scripts/build.sh
+      - name: Package
+        run: cd build && ditto -c -k --keepParent Ajar.app Ajar.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Ajar-unsigned
+          path: build/Ajar.zip

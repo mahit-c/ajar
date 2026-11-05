@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2B3A78"/>
+      <stop offset="0.55" stop-color="#151C45"/>
+      <stop offset="1" stop-color="#0A0E26"/>
+    </linearGradient>
+    <linearGradient id="lid" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8E95A8"/>
+      <stop offset="1" stop-color="#D9DDE7"/>
+    </linearGradient>
+    <linearGradient id="base" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F2F4F8"/>
+      <stop offset="1" stop-color="#A3AABB"/>
+    </linearGradient>
+    <linearGradient id="interior" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0E1230"/>
+      <stop offset="1" stop-color="#4A3A6E"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFB347" stop-opacity="0.2"/>
+      <stop offset="0.5" stop-color="#FFD27A"/>
+      <stop offset="1" stop-color="#FFF8E1"/>
+    </linearGradient>
+    <linearGradient id="fan" gradientUnits="userSpaceOnUse" x1="780" y1="0" x2="950" y2="0">
+      <stop offset="0" stop-color="#FFD27A" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#FFB347" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="spill" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFD58A" stop-opacity="0.85"/>
+      <stop offset="0.45" stop-color="#FFB347" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#FF9F43" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feGaussianBlur stdDeviation="16"/><feOffset dy="14"/><feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+    </filter>
+    <clipPath id="tile">
+      <rect x="100" y="100" width="824" height="824" rx="185"/>
+    </clipPath>
+  </defs>
+
+  <!-- macOS icon tile -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="#000" filter="url(#shadow)"/>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#sky)"/>
+
+  <g clip-path="url(#tile)">
+    <!-- stars -->
+    <g fill="#FFFFFF">
+      <circle cx="300" cy="270" r="7" opacity="0.85"/>
+      <circle cx="405" cy="205" r="4.5" opacity="0.6"/>
+      <circle cx="560" cy="250" r="5" opacity="0.7"/>
+      <circle cx="700" cy="200" r="7.5" opacity="0.9"/>
+      <circle cx="770" cy="320" r="4" opacity="0.55"/>
+      <circle cx="235" cy="390" r="3.5" opacity="0.5"/>
+    </g>
+
+    <g transform="translate(-36 -24)">
+      <!-- light fanning out of the gap -->
+      <polygon points="784,640 779,527 960,450 960,700" fill="url(#fan)"/>
+      <ellipse cx="790" cy="600" rx="170" ry="120" fill="url(#spill)"/>
+
+      <!-- base -->
+      <rect x="226" y="638" width="584" height="34" rx="14" fill="url(#base)"/>
+      <rect x="250" y="670" width="536" height="8" rx="4" fill="#6E7588" opacity="0.6"/>
+
+      <!-- dim interior between lid and base -->
+      <polygon points="258,640 784,640 779,527" fill="url(#interior)"/>
+      <!-- lit screen on the underside of the lid -->
+      <polygon points="262,632 779,527 780,541 270,638" fill="url(#screen)"/>
+
+      <!-- lid, hinged at the back, open ~12 degrees -->
+      <polygon points="250,640 779,527 774,503 245,616" fill="url(#lid)"/>
+      <circle cx="248" cy="628" r="16" fill="#8E95A8"/>
+    </g>
+  </g>
+</svg>

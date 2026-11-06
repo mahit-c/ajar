@@ -13,11 +13,15 @@ enum LidMonitor {
         return (value as? Bool) ?? false
     }
 
-    /// With the lid closed, any remaining active display is an external one, meaning
-    /// the user is working in clamshell mode and must not be locked out.
-    static var hasActiveDisplay: Bool {
+    /// An external display in use means the user is working in clamshell mode and must not
+    /// be locked out. The built-in display is ignored: while sleep is disabled, macOS keeps
+    /// reporting it as active and awake even with the lid shut.
+    static var hasExternalDisplay: Bool {
         var count: UInt32 = 0
-        return CGGetActiveDisplayList(0, nil, &count) == .success && count > 0
+        guard CGGetActiveDisplayList(0, nil, &count) == .success, count > 0 else { return false }
+        var displays = [CGDirectDisplayID](repeating: 0, count: Int(count))
+        guard CGGetActiveDisplayList(count, &displays, &count) == .success else { return false }
+        return displays.prefix(Int(count)).contains { CGDisplayIsBuiltin($0) == 0 }
     }
 }
 

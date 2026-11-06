@@ -176,7 +176,7 @@ final class SessionController: ObservableObject {
         // Give macOS a moment to switch displays, then skip locking in clamshell mode
         // (lid closed with an external display in use).
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
-            guard let self, isActive, LidMonitor.isClosed, !LidMonitor.hasActiveDisplay else { return }
+            guard let self, isActive, LidMonitor.isClosed, !LidMonitor.hasExternalDisplay else { return }
             ScreenLocker.lockNow()
         }
     }

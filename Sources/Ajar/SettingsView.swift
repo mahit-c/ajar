@@ -3,12 +3,14 @@ import SwiftUI
 import AjarShared
 
 struct SettingsView: View {
+    @EnvironmentObject private var session: SessionController
+
     var body: some View {
-        TabView {
-            GeneralTab().tabItem { Label("General", systemImage: "laptopcomputer") }
-            SafetyTab().tabItem { Label("Safety", systemImage: "thermometer.medium") }
-            HelperTab().tabItem { Label("Helper", systemImage: "lock.shield") }
-            AboutTab().tabItem { Label("About", systemImage: "info.circle") }
+        TabView(selection: $session.settingsTab) {
+            GeneralTab().tabItem { Label("General", systemImage: "laptopcomputer") }.tag("general")
+            SafetyTab().tabItem { Label("Safety", systemImage: "thermometer.medium") }.tag("safety")
+            HelperTab().tabItem { Label("Helper", systemImage: "lock.shield") }.tag("helper")
+            AboutTab().tabItem { Label("About", systemImage: "info.circle") }.tag("about")
         }
         .padding(20)
         .frame(width: 520, height: 400)

@@ -37,11 +37,10 @@ Ajar gives you that same switch, plus the safety rails it lacks:
 - **No extra downloads.** It's one app with one helper, and the helper can do exactly one thing.
 - **Private.** No analytics, no network access, no accounts.
 
-<!-- TODO: add screenshots -->
 <p align="center">
-  <img src="docs/menu.png" width="320" alt="Ajar menu bar menu">
-  &nbsp;&nbsp;
-  <img src="docs/settings.png" width="420" alt="Ajar settings window">
+  <img src="docs/safety.png" width="420" alt="Ajar safety settings: battery temperature limit, early warning and thermal protection">
+  &nbsp;
+  <img src="docs/welcome.png" width="336" alt="Ajar welcome window">
 </p>
 
 ## Install

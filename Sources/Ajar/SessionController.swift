@@ -23,6 +23,8 @@ final class SessionController: ObservableObject {
     @Published private(set) var now = Date()
     /// Duration picked in the Settings window; 0 means indefinitely.
     @Published var settingsDuration: TimeInterval = 0
+    /// Last Settings tab shown, so the window reopens where the user left it.
+    @Published var settingsTab: String { didSet { defaults.set(settingsTab, forKey: Keys.settingsTab) } }
 
     @Published var stopBelowBattery: Bool { didSet { defaults.set(stopBelowBattery, forKey: Keys.stopBelowBattery) } }
     @Published var batteryThreshold: Int { didSet { defaults.set(batteryThreshold, forKey: Keys.batteryThreshold) } }
@@ -45,6 +47,7 @@ final class SessionController: ObservableObject {
         static let temperatureLimit = "temperatureLimit"
         static let temperatureWarning = "temperatureWarning"
         static let lockOnLidClose = "lockOnLidClose"
+        static let settingsTab = "settingsTab"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
     }
 
@@ -65,6 +68,7 @@ final class SessionController: ObservableObject {
             Keys.temperatureLimit: 45,
             Keys.temperatureWarning: true,
             Keys.lockOnLidClose: true,
+            Keys.settingsTab: "general",
         ])
         stopBelowBattery = defaults.bool(forKey: Keys.stopBelowBattery)
         batteryThreshold = defaults.integer(forKey: Keys.batteryThreshold)
@@ -74,6 +78,7 @@ final class SessionController: ObservableObject {
         temperatureLimit = defaults.integer(forKey: Keys.temperatureLimit)
         temperatureWarning = defaults.bool(forKey: Keys.temperatureWarning)
         lockOnLidClose = defaults.bool(forKey: Keys.lockOnLidClose)
+        settingsTab = defaults.string(forKey: Keys.settingsTab) ?? "general"
     }
 
     var hasCompletedOnboarding: Bool {
